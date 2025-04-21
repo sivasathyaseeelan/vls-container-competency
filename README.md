@@ -1,6 +1,6 @@
 # Using VLS with Core Lightning on Regtest
 
-This guide demonstrates how to set up two Core Lightning nodes using Validating Lightning Signer (VLS) as the signer on a Bitcoin regtest network. The nodes will be connected, a channel will be established, an invoice will be created on one node, and paid from the other using Docker containers. Expected outputs for key steps are included to verify success.
+This guide demonstrates how to set up two Core Lightning nodes using Validating Lightning Signer (VLS) as the signer on a Bitcoin regtest network. The nodes will be connected, a channel will be established, an invoice will be created on one node, and paid from the other using Docker containers. Outputs for key steps are included to verify success.
 
 ## Prerequisites
 
@@ -107,7 +107,7 @@ docker compose -f docker-compose.two-nodes.yml up --build -d
    docker container exec bitcoind-regtest bitcoin-cli createwallet default || true
    ```
 
-   **Expected Output**:
+   **Output**:
 
    ```
    {
@@ -121,7 +121,7 @@ docker compose -f docker-compose.two-nodes.yml up --build -d
    docker container exec bitcoind-regtest bitcoin-cli getnewaddress
    ```
 
-   **Expected Output** (example):
+   **Output**:
 
    ```
    bcrt1q9yf4khj8yde79q3ccd57ulew8kdum3m757neg8
@@ -133,7 +133,7 @@ docker compose -f docker-compose.two-nodes.yml up --build -d
    docker container exec bitcoind-regtest bitcoin-cli generatetoaddress 101 bcrt1q9yf4khj8yde79q3ccd57ulew8kdum3m757neg8
    ```
 
-   **Expected Output**:
+   **Output**:
 
    ```
    [
@@ -152,7 +152,7 @@ docker compose -f docker-compose.two-nodes.yml up --build -d
    docker container exec lightningd-regtest-2 lightning-cli --regtest --lightning-dir=/home/lightning/.lightning/regtest2 newaddr
    ```
 
-   **Expected Output** (example):
+   **Output**:
 
    ```
    {
@@ -170,7 +170,7 @@ docker compose -f docker-compose.two-nodes.yml up --build -d
    docker container exec bitcoind-regtest bitcoin-cli sendtoaddress bcrt1qgs8pp3vdzfgphq4mwj9mywv7dym0mkx5z734pk 10
    ```
 
-   **Expected Output** (example):
+   **Output**:
 
    ```
    037f22c5b44a52cb5b5def8f9fc4a6cabfe08c521938482d2eb488c7b37232fe
@@ -183,7 +183,7 @@ docker compose -f docker-compose.two-nodes.yml up --build -d
    docker container exec bitcoind-regtest bitcoin-cli generatetoaddress 1 bcrt1q9yf4khj8yde79q3ccd57ulew8kdum3m757neg8
    ```
 
-   **Expected Output**:
+   **Output**:
 
    ```
    [
@@ -198,7 +198,7 @@ docker compose -f docker-compose.two-nodes.yml up --build -d
    docker container exec lightningd-regtest-2 lightning-cli --regtest --lightning-dir=/home/lightning/.lightning/regtest2 listfunds
    ```
 
-   **Expected Output** (example):
+   **Output**:
 
    ```
    {
@@ -242,7 +242,7 @@ docker compose -f docker-compose.two-nodes.yml up --build -d
    docker container exec lightningd-regtest-2 lightning-cli --regtest --lightning-dir=/home/lightning/.lightning/regtest2 getinfo
    ```
 
-   **Expected Output** (example):
+   **Output**:
 
    ```
     {
@@ -321,7 +321,7 @@ docker compose -f docker-compose.two-nodes.yml up --build -d
    docker container exec lightningd-regtest-1 lightning-cli --regtest --lightning-dir=/home/lightning/.lightning/regtest1 connect 03c1f5a62bf9859207eae8227029ce20f408a3a58a44e5da63ae7bd4eb8226657b lightningd-regtest-2 9736
    ```
 
-   **Expected Output**:
+   **Output**:
 
    ```
    {
@@ -342,7 +342,7 @@ docker compose -f docker-compose.two-nodes.yml up --build -d
    docker container exec lightningd-regtest-1 lightning-cli --regtest --lightning-dir=/home/lightning/.lightning/regtest1 listpeers
    ```
 
-   **Expected Output** (example):
+   **Output**:
 
    ```
     {
@@ -368,7 +368,7 @@ docker compose -f docker-compose.two-nodes.yml up --build -d
    docker container exec lightningd-regtest-1 lightning-cli --regtest --lightning-dir=/home/lightning/.lightning/regtest1 fundchannel 03c1f5a62bf9859207eae8227029ce20f408a3a58a44e5da63ae7bd4eb8226657b 1000000
    ```
 
-   **Expected Output** (example):
+   **Output**:
 
    ```
     {
@@ -395,7 +395,7 @@ docker compose -f docker-compose.two-nodes.yml up --build -d
    docker container exec bitcoind-regtest bitcoin-cli generatetoaddress 6 bcrt1q9yf4khj8yde79q3ccd57ulew8kdum3m757neg8
    ```
 
-   **Expected Output**:
+   **Output**:
 
    ```
     [
@@ -418,7 +418,7 @@ docker compose -f docker-compose.two-nodes.yml up --build -d
    docker container exec lightningd-regtest-2 lightning-cli --regtest --lightning-dir=/home/lightning/.lightning/regtest2 invoice 100000 myinvoice2 "Test payment"
    ```
 
-   **Expected Output** (example):
+   **Output**:
 
    ```
    {
@@ -436,7 +436,7 @@ docker compose -f docker-compose.two-nodes.yml up --build -d
    docker container exec lightningd-regtest-1 lightning-cli --regtest --lightning-dir=/home/lightning/.lightning/regtest1 pay lnbcrt1u1pnlla4xsp5nw5mc8z2dytpc739x2f3ts72y4xupmra9xlealtf8lk0t207a0zspp5gnf7muetaq6azy652ssd3rduphgueq7vx53zj4m0wr9xxdp3qjnqdq523jhxapqwpshjmt9de6qxqyjw5qcqp29qxpqysgqlxgc75mds750az3wclyszyemnz0m0fupuc8xnkaunhvu3nsw0geh05330gacet2rmvzlk5uakz3zwmx0xk6veuqua259a52dtv90xucppea89j
    ```
 
-   **Expected Output** (example):
+   **Output**:
 
    ```
     {
@@ -457,7 +457,7 @@ docker compose -f docker-compose.two-nodes.yml up --build -d
    docker container exec lightningd-regtest-2 lightning-cli --regtest --lightning-dir=/home/lightning/.lightning/regtest2 listinvoices
    ```
 
-   **Expected Output** (example):
+   **Output**:
 
    ```
     {
@@ -497,7 +497,7 @@ cat lightningd-regtest-1.conf
 cat lightningd-regtest-2.conf
 ```
 
-**Expected Output** (example):
+**Output**:
 
 - **bitcoin-cli getwalletinfo**:
 
@@ -614,7 +614,7 @@ docker compose -f docker-compose.two-nodes.yml down --volumes
 docker network rm regtest_lightning || true
 ```
 
-**Expected Output**:
+**Output**:
 
 ```
 [+] Running 6/6
@@ -633,4 +633,4 @@ docker network rm regtest_lightning || true
 - **Regtest**: Ideal for testing with no real funds.
 - **Security**: Use strong credentials in production environments.
 
-This setup ensures two Core Lightning nodes with VLS signers can connect, open a channel, and process payments on regtest, with expected outputs to confirm each step.
+This setup ensures two Core Lightning nodes with VLS signers can connect, open a channel, and process payments on regtest, with Outputs to confirm each step.
