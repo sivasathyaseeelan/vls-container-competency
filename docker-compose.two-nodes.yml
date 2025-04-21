@@ -1,0 +1,209 @@
+services:
+  bitcoin-core:
+    build:
+      context: ./bitcoind
+      args:
+        - BITCOIN_VERSION
+        - BITCOIN_SHA256SUMS_HASH
+    image: bitcoind:${IMAGE_TAG:-regtest}
+    container_name: bitcoind-regtest
+    volumes:
+      - bitcoin_data:/home/bitcoin/.bitcoin
+    expose:
+      - 38332
+    networks:
+      regtest_lightning:
+        aliases:
+          - bitcoind
+          - bitcoind-regtest
+    environment:
+      - BITCOIN_CHAIN=regtest
+    command:
+      - /bin/sh
+      - -c
+      - "bitcoind -fallbackfee=0.0002 -rpcuser=rpcuser -rpcpassword=VLSsigner1"
+    healthcheck:
+      test: ["CMD", "bitcoin-cli", "-rpcuser=rpcuser", "-rpcpassword=VLSsigner1", "getblockchaininfo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  core-lightning-1:
+    build:
+      context: ./lightningd
+      args:
+        - CORE_LIGHTNING_REPO
+        - CORE_LIGHTNING_GIT_HASH
+        - CLBOSS_REPO
+        - CLBOSS_GIT_HASH
+        - CLN_PLUGINS_REPO
+        - CLN_PLUGINS_GIT_HASH
+        - VLS_REPO
+        - VLS_GIT_HASH
+    image: lightningd:${IMAGE_TAG:-regtest}
+    container_name: lightningd-regtest-1
+    user: root
+    command:
+      - /bin/sh
+      - -c
+      - "sleep 60 && rm -f /home/lightning/.lightning/regtest1/hsm_secret && lightningd --lightning-dir=/home/lightning/.lightning/regtest1 --conf=/home/lightning/.lightning/regtest1/lightningd-regtest-1.conf --bitcoin-rpcuser=rpcuser --bitcoin-rpcpassword=VLSsigner1 --bitcoin-rpcport=38332 --log-file=/home/lightning/.lightning/regtest1/lightning-1.log --log-level=debug & sleep 20 && [ -S /home/lightning/.lightning/regtest1/hsm_secret ] && VLS_PORT=7701 /usr/libexec/c-lightning/remote_hsmd_socket & wait"
+    volumes:
+      - lightning_data_1:/home/lightning/.lightning/regtest1
+      - ./lightningd-regtest-1.conf:/home/lightning/.lightning/regtest1/lightningd-regtest-1.conf
+    expose:
+      - 9735
+      - 7701
+    ports:
+      - 9735:9735
+      - 7701:7701
+    networks:
+      regtest_lightning:
+        aliases:
+          - lightningd-regtest-1
+    depends_on:
+      bitcoin-core:
+        condition: service_healthy
+    environment:
+      - RUST_LOG=trace
+      - LIGHTNINGD_LOG_LEVEL=debug
+      - VLS_NETWORK=regtest
+      - BITCOIND_RPC_URL=http://rpcuser:VLSsigner1@bitcoind-regtest:38332
+    healthcheck:
+      test: ["CMD", "lightning-cli", "--regtest", "--lightning-dir=/home/lightning/.lightning/regtest1", "getinfo"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  vls-1:
+    build:
+      context: ./vlsd
+      args:
+        - VLS_REPO
+        - VLS_GIT_HASH
+        - TXOO_PUBLIC_KEY
+        - VLS_FEATURES
+    image: vlsd:${IMAGE_TAG:-regtest}
+    container_name: vlsd-regtest-1
+    profiles:
+      - vls
+    command:
+      - /bin/sh
+      - -c
+      - "vlsd2 --log-level=info --connect=http://lightningd-regtest-1:7701 --rpc-user=vlsuser --rpc-pass=vlspass"
+    networks:
+      regtest_lightning:
+        aliases:
+          - vlsd-regtest-1
+    volumes:
+      - vls_data_1:/home/vls/.lightning-signer
+    depends_on:
+      bitcoin-core:
+        condition: service_healthy
+      core-lightning-1:
+        condition: service_healthy
+    environment:
+      - VLS_NETWORK=regtest
+      - VLS_PERMISSIVE=1
+      - RUST_LOG=info
+      - BITCOIND_RPC_URL=http://rpcuser:VLSsigner1@bitcoind-regtest:38332
+    healthcheck:
+      test: ["CMD", "vls-cli", "--rpc-user=vlsuser", "--rpc-pass=vlspass", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  core-lightning-2:
+    build:
+      context: ./lightningd
+      args:
+        - CORE_LIGHTNING_REPO
+        - CORE_LIGHTNING_GIT_HASH
+        - CLBOSS_REPO
+        - CLBOSS_GIT_HASH
+        - CLN_PLUGINS_REPO
+        - CLN_PLUGINS_GIT_HASH
+        - VLS_REPO
+        - VLS_GIT_HASH
+    image: lightningd:${IMAGE_TAG:-regtest}
+    container_name: lightningd-regtest-2
+    user: root
+    command:
+      - /bin/sh
+      - -c
+      - "sleep 60 && rm -f /home/lightning/.lightning/regtest2/hsm_secret && lightningd --lightning-dir=/home/lightning/.lightning/regtest2 --conf=/home/lightning/.lightning/regtest2/lightningd-regtest-2.conf --bitcoin-rpcuser=rpcuser --bitcoin-rpcpassword=VLSsigner1 --bitcoin-rpcport=38332 --log-file=/home/lightning/.lightning/regtest2/lightning-2.log --log-level=debug & sleep 20 && [ -S /home/lightning/.lightning/regtest2/hsm_secret ] && VLS_PORT=7702 /usr/libexec/c-lightning/remote_hsmd_socket & wait"
+    volumes:
+      - lightning_data_2:/home/lightning/.lightning/regtest2
+      - ./lightningd-regtest-2.conf:/home/lightning/.lightning/regtest2/lightningd-regtest-2.conf
+    expose:
+      - 9736
+      - 7702
+    ports:
+      - 9736:9736
+      - 7702:7702
+    networks:
+      regtest_lightning:
+        aliases:
+          - lightningd-regtest-2
+    depends_on:
+      bitcoin-core:
+        condition: service_healthy
+    environment:
+      - RUST_LOG=trace
+      - LIGHTNINGD_LOG_LEVEL=debug
+      - VLS_NETWORK=regtest
+      - BITCOIND_RPC_URL=http://rpcuser:VLSsigner1@bitcoind-regtest:38332
+    healthcheck:
+      test: ["CMD", "lightning-cli", "--regtest", "--lightning-dir=/home/lightning/.lightning/regtest2", "getinfo"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  vls-2:
+    build:
+      context: ./vlsd
+      args:
+        - VLS_REPO
+        - VLS_GIT_HASH
+        - TXOO_PUBLIC_KEY
+        - VLS_FEATURES
+    image: vlsd:${IMAGE_TAG:-regtest}
+    container_name: vlsd-regtest-2
+    profiles:
+      - vls
+    command:
+      - /bin/sh
+      - -c
+      - "vlsd2 --log-level=info --connect=http://lightningd-regtest-2:7702 --rpc-user=vlsuser --rpc-pass=vlspass"
+    networks:
+      regtest_lightning:
+        aliases:
+          - vlsd-regtest-2
+    volumes:
+      - vls_data_2:/home/vls/.lightning-signer
+    depends_on:
+      bitcoin-core:
+        condition: service_healthy
+      core-lightning-2:
+        condition: service_healthy
+    environment:
+      - VLS_NETWORK=regtest
+      - VLS_PERMISSIVE=1
+      - RUST_LOG=info
+      - BITCOIND_RPC_URL=http://rpcuser:VLSsigner1@bitcoind-regtest:38332
+    healthcheck:
+      test: ["CMD", "vls-cli", "--rpc-user=vlsuser", "--rpc-pass=vlspass", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  bitcoin_data:
+  lightning_data_1:
+  lightning_data_2:
+  vls_data_1:
+  vls_data_2:
+
+networks:
+  regtest_lightning:
+    name: regtest_lightning
+    driver: bridge
