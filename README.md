@@ -94,7 +94,7 @@ Use the provided `docker-compose.two-nodes.yml` to define services for Bitcoin C
 Build and start the containers:
 
 ```bash
-docker compose -f docker-compose.regtest.yml up --build -d
+docker compose -f docker-compose.two-nodes.yml up --build -d
 ```
 
 ## Funding the Nodes
@@ -610,7 +610,7 @@ cat lightningd-regtest-2.conf
 
 ```bash
 cd vls-container
-docker compose -f docker-compose.regtest.yml down --volumes
+docker compose -f docker-compose.two-nodes.yml down --volumes
 docker network rm regtest_lightning || true
 ```
 
